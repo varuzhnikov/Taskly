@@ -17,6 +17,7 @@ func TestTaskRepo_Create(t *testing.T) {
 	pool := testutil.NewPostgresPool(t)
 
 	t.Run("creates task with all fields", func(t *testing.T) {
+		// TODO: strengthen this test by retrieving the task and verifying all persisted fields.
 		ctx := testutil.TxContext(t, pool)
 		user := testutil.CreateUser(t, ctx, pool, "task-user@example.com", "pass")
 		repo := repository.NewTaskRepo(pool)
@@ -30,10 +31,12 @@ func TestTaskRepo_Create(t *testing.T) {
 			Priority: domain.PriorityHigh,
 			DueAt:    &due,
 		}
+		// TODO: separate the create side effect from its error verification for clarity.
 		require.NoError(t, repo.Create(ctx, task))
 	})
 
 	t.Run("creates task with nil optional fields", func(t *testing.T) {
+		// TODO: strengthen this test by retrieving the task and verifying omitted optional fields are still nil.
 		ctx := testutil.TxContext(t, pool)
 		user := testutil.CreateUser(t, ctx, pool, "task-nil@example.com", "pass")
 		repo := repository.NewTaskRepo(pool)
@@ -44,6 +47,7 @@ func TestTaskRepo_Create(t *testing.T) {
 			Title:  "Minimal task",
 			Links:  []domain.TaskLink{},
 		}
+		// TODO: separate the create side effect from its error verification for clarity.
 		require.NoError(t, repo.Create(ctx, task))
 	})
 }
@@ -113,6 +117,31 @@ func TestTaskRepo_List(t *testing.T) {
 		tasks, err = repo.List(ctx, user.ID, domain.TaskFilter{Completed: &incomplete, Limit: 50})
 		require.NoError(t, err)
 		assert.Len(t, tasks, 0)
+	})
+
+	t.Run("filter inbox returns only unassigned tasks for user", func(t *testing.T) {
+		ctx := testutil.TxContext(t, pool)
+		user := testutil.CreateUser(t, ctx, pool, "inboxuser@example.com", "pass")
+		other := testutil.CreateUser(t, ctx, pool, "inboxother@example.com", "pass")
+		project := testutil.CreateProject(t, ctx, pool, user.ID, "Inbox Filter Project")
+		otherProject := testutil.CreateProject(t, ctx, pool, other.ID, "Other Project")
+
+		inboxTask := testutil.CreateTask(t, ctx, pool, user.ID, "Inbox task")
+		projectTask := testutil.CreateTask(t, ctx, pool, user.ID, "Project task")
+		projectTask.ProjectID = &project.ID
+
+		repo := repository.NewTaskRepo(pool)
+		require.NoError(t, repo.Update(ctx, projectTask))
+
+		otherTask := testutil.CreateTask(t, ctx, pool, other.ID, "Other user inbox task")
+		otherTask.ProjectID = &otherProject.ID
+		require.NoError(t, repo.Update(ctx, otherTask))
+
+		tasks, err := repo.List(ctx, user.ID, domain.TaskFilter{InboxOnly: true, Limit: 50})
+		require.NoError(t, err)
+		require.Len(t, tasks, 1)
+		assert.Equal(t, inboxTask.ID, tasks[0].ID)
+		assert.Nil(t, tasks[0].ProjectID)
 	})
 }
 

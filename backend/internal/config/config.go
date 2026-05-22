@@ -16,7 +16,8 @@ type Config struct {
 	RefreshTokenExpiry time.Duration `envconfig:"REFRESH_TOKEN_EXPIRY" default:"168h"`
 	BCryptCost         int           `envconfig:"BCRYPT_COST"          default:"12"`
 
-	Env string `envconfig:"ENV" default:"development"`
+	Env                string   `envconfig:"ENV" default:"development"`
+	CORSAllowedOrigins []string `envconfig:"CORS_ALLOWED_ORIGINS"`
 }
 
 func Load() (*Config, error) {

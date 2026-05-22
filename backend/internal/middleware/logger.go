@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// TODO Check if unused type
 type ctxKeyRequestIDType = ctxKey
 
 const ctxKeyRequestID ctxKey = "request_id"

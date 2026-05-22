@@ -35,6 +35,8 @@ type UpdateProjectInput struct {
 	SortOrder int
 }
 
+// TODO make tests for it
+
 func (s *ProjectService) Create(ctx context.Context, in CreateProjectInput) (*domain.Project, error) {
 	p := &domain.Project{
 		ID:        uuid.New(),

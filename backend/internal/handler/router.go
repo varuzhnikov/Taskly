@@ -3,12 +3,15 @@ package handler
 import (
 	"log/slog"
 	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 
+	"github.com/todoist/backend/internal/config"
 	"github.com/todoist/backend/internal/middleware"
 	"github.com/todoist/backend/internal/service"
 )
@@ -26,18 +29,11 @@ type Deps struct {
 }
 
 // NewRouter builds and returns the fully configured chi router.
-func NewRouter(deps Deps, logger *slog.Logger) http.Handler {
+func NewRouter(deps Deps, logger *slog.Logger, cfg *config.Config) http.Handler {
 	r := chi.NewRouter()
 
 	// Global middleware — order matters.
-	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-Request-ID"},
-		ExposedHeaders:   []string{"X-Request-ID"},
-		AllowCredentials: false,
-		MaxAge:           300,
-	}))
+	r.Use(cors.Handler(newCORSOptions(cfg)))
 	r.Use(middleware.SetRequestID)
 	r.Use(middleware.Logger(logger))
 	r.Use(chiMiddleware.Recoverer)
@@ -99,4 +95,51 @@ func NewRouter(deps Deps, logger *slog.Logger) http.Handler {
 	})
 
 	return r
+}
+
+func newCORSOptions(cfg *config.Config) cors.Options {
+	options := cors.Options{
+		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-Request-ID"},
+		ExposedHeaders:   []string{"X-Request-ID"},
+		AllowCredentials: false,
+		MaxAge:           300,
+	}
+
+	allowedOrigins := trimOrigins(cfg.CORSAllowedOrigins)
+	if len(allowedOrigins) > 0 {
+		options.AllowedOrigins = allowedOrigins
+		return options
+	}
+
+	if strings.EqualFold(cfg.Env, "development") {
+		options.AllowOriginFunc = func(r *http.Request, origin string) bool {
+			u, err := url.Parse(origin)
+			if err != nil {
+				return false
+			}
+
+			if u.Scheme != "http" {
+				return false
+			}
+
+			return u.Hostname() == "localhost" || u.Hostname() == "127.0.0.1"
+		}
+		return options
+	}
+
+	options.AllowedOrigins = []string{"http://localhost:3000"}
+	return options
+}
+
+func trimOrigins(origins []string) []string {
+	trimmed := make([]string, 0, len(origins))
+	for _, origin := range origins {
+		origin = strings.TrimSpace(origin)
+		if origin == "" {
+			continue
+		}
+		trimmed = append(trimmed, origin)
+	}
+	return trimmed
 }

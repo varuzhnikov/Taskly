@@ -193,6 +193,7 @@ func (r *TaskRepo) GetLabels(ctx context.Context, taskID uuid.UUID) ([]*domain.L
 // buildListQuery constructs a parameterized SELECT for the task list endpoint.
 // All user-controlled values go through numbered parameters ($N) — no untrusted
 // input is ever interpolated directly into the query string.
+// TODO Review later
 func buildListQuery(userID uuid.UUID, f domain.TaskFilter) (string, []any) {
 	args := []any{userID}
 	conds := []string{"t.user_id = $1"}
@@ -205,6 +206,9 @@ func buildListQuery(userID uuid.UUID, f domain.TaskFilter) (string, []any) {
 
 	if f.ProjectID != nil {
 		addCond("t.project_id = $%d", *f.ProjectID)
+	}
+	if f.InboxOnly {
+		conds = append(conds, "t.project_id IS NULL")
 	}
 	if f.Priority != nil {
 		addCond("t.priority = $%d", *f.Priority)

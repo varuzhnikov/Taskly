@@ -16,6 +16,7 @@ func TestProjectRepo_CRUD(t *testing.T) {
 	pool := testutil.NewPostgresPool(t)
 
 	t.Run("create and retrieve project", func(t *testing.T) {
+		// TODO: strengthen this test by verifying more persisted fields, not only Name.
 		ctx := testutil.TxContext(t, pool)
 		user := testutil.CreateUser(t, ctx, pool, "proj-user@example.com", "pass")
 		p := testutil.CreateProject(t, ctx, pool, user.ID, "Work")
@@ -45,6 +46,9 @@ func TestProjectRepo_CRUD(t *testing.T) {
 
 		repo := repository.NewProjectRepo(pool)
 		projects, err := repo.ListByUser(ctx, user.ID)
+
+		// TODO : test order of returning projects
+
 		require.NoError(t, err)
 		assert.Len(t, projects, 2)
 	})
@@ -56,6 +60,7 @@ func TestProjectRepo_CRUD(t *testing.T) {
 
 		p.Name = "New Name"
 		repo := repository.NewProjectRepo(pool)
+		// TODO: separate the update side effect from its error verification for clarity.
 		require.NoError(t, repo.Update(ctx, p))
 
 		got, err := repo.GetByID(ctx, p.ID, user.ID)
@@ -69,6 +74,7 @@ func TestProjectRepo_CRUD(t *testing.T) {
 		p := testutil.CreateProject(t, ctx, pool, user.ID, "To Delete")
 
 		repo := repository.NewProjectRepo(pool)
+		// TODO: separate the delete side effect from its error verification for clarity.
 		require.NoError(t, repo.Delete(ctx, p.ID, user.ID))
 
 		_, err := repo.GetByID(ctx, p.ID, user.ID)

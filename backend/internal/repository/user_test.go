@@ -24,6 +24,7 @@ func TestUserRepo_Create(t *testing.T) {
 			Email:        "alice@example.com",
 			PasswordHash: "$2a$12$hashed",
 		}
+		// TODO make it clean side effect creation and then checking error
 		require.NoError(t, repo.Create(ctx, u))
 	})
 
@@ -32,6 +33,7 @@ func TestUserRepo_Create(t *testing.T) {
 		repo := repository.NewUserRepo(pool)
 
 		u := &domain.User{ID: uuid.New(), Email: "bob@example.com", PasswordHash: "x"}
+		// TODO make it clean side effect creation and then checking error
 		require.NoError(t, repo.Create(ctx, u))
 
 		dup := &domain.User{ID: uuid.New(), Email: "bob@example.com", PasswordHash: "y"}
@@ -95,6 +97,7 @@ func TestUserRepo_Update(t *testing.T) {
 
 		u := testutil.CreateUser(t, ctx, pool, "eve@example.com", "password123")
 		u.Email = "eve-new@example.com"
+		//TODO separate testable action from it's verification further
 		require.NoError(t, repo.Update(ctx, u))
 
 		got, err := repo.GetByID(ctx, u.ID)

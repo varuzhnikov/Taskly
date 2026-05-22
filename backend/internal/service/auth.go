@@ -35,6 +35,8 @@ func NewAuthService(
 	accessExp, refreshExp time.Duration,
 	bcryptCost int,
 ) *AuthService {
+	// TODO: Reject weak JWT secrets at startup. For HS256, require a
+	// cryptographically random secret with at least 32 bytes of entropy.
 	return &AuthService{
 		users:      users,
 		tokens:     tokens,
@@ -125,6 +127,8 @@ func (s *AuthService) Login(ctx context.Context, in LoginInput) (*TokenPair, err
 func (s *AuthService) Refresh(ctx context.Context, rawToken string) (*TokenPair, error) {
 	hash := hashToken(rawToken)
 
+	// TODO: Wrap refresh-token rotation in a single transaction so deleting the
+	// old token and persisting the replacement are atomic.
 	stored, err := s.tokens.GetByHash(ctx, hash)
 	if err != nil {
 		return nil, domain.ErrTokenInvalid
@@ -207,6 +211,8 @@ func (s *AuthService) mintAccessToken(userID uuid.UUID) (string, error) {
 
 // ValidateAccessToken parses and validates a JWT, returning the subject (user ID).
 func (s *AuthService) ValidateAccessToken(tokenString string) (uuid.UUID, error) {
+	// TODO: Restrict parsing to HS256 explicitly, e.g. with jwt.WithValidMethods,
+	// instead of accepting any HMAC-based signing method.
 	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (any, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
@@ -223,6 +229,8 @@ func (s *AuthService) ValidateAccessToken(tokenString string) (uuid.UUID, error)
 		return uuid.Nil, domain.ErrTokenInvalid
 	}
 
+	// TODO: If tokens are ever consumed across multiple services or audiences,
+	// add and validate issuer/audience claims in addition to exp/sub.
 	sub, ok := claims["sub"].(string)
 	if !ok {
 		return uuid.Nil, domain.ErrTokenInvalid

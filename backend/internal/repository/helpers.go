@@ -10,5 +10,6 @@ import (
 // Uses errors.As so it correctly unwraps layered errors from pgx.
 func isUniqueViolation(err error) bool {
 	var pgErr *pgconn.PgError
+	// TODO replace with jaxc err package postgres constants
 	return errors.As(err, &pgErr) && pgErr.Code == "23505"
 }

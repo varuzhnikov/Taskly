@@ -27,6 +27,7 @@ func NewTaskHandler(tasks *service.TaskService) *TaskHandler {
 // @Security     BearerAuth
 // @Produce      json
 // @Param        project_id  query  string false "Filter by project UUID"
+// @Param        inbox       query  bool   false "When true, return only unassigned tasks"
 // @Param        label_id    query  string false "Filter by label UUID"
 // @Param        priority    query  int    false "Filter by priority (0-4)"
 // @Param        completed   query  bool   false "Filter by completion status"
@@ -297,6 +298,9 @@ func parseTaskFilter(r *http.Request) domain.TaskFilter {
 		if id, err := uuid.Parse(v); err == nil {
 			f.ProjectID = &id
 		}
+	}
+	if q.Get("inbox") == "true" {
+		f.InboxOnly = true
 	}
 	if v := q.Get("label_id"); v != "" {
 		if id, err := uuid.Parse(v); err == nil {

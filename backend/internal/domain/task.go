@@ -44,6 +44,7 @@ type Task struct {
 
 type TaskFilter struct {
 	ProjectID *uuid.UUID
+	InboxOnly bool
 	LabelID   *uuid.UUID
 	Priority  *Priority
 	Completed *bool

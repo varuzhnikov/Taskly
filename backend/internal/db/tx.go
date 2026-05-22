@@ -7,6 +7,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// txKey is a private context key type to avoid collisions with other packages;
+// the empty struct carries no data because only the key's unique type/value matters.
 type txKey struct{}
 
 // TxManager wraps a pool and exposes WithTransaction for service-level use.
