@@ -1,0 +1,36 @@
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.local.example
+!.env.compose.example
+
+# Go
+bin/
+coverage.out
+*.coverprofile
+
+# Frontend / Node
+node_modules/
+.next/
+dist/
+coverage/
+playwright-report/
+test-results/
+test-screenshots/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+
+# Local agent / workspace state
+.claude/
+.codex
+AGENTS.md
+CLAUDE.md
+PLAN.md
