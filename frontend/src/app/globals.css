@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #db4035;
+  --color-brand-hover: #c0392b;
+  --color-sidebar-bg: #1f2937;
+  --color-sidebar-text: #d1d5db;
+  --color-sidebar-hover: #374151;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-default: 0.375rem;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #ffffff;
+    color: #111827;
+  }
+}
