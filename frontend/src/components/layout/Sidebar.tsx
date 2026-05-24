@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Inbox, Hash, FolderOpen, LogOut, Plus } from "lucide-react";
+import { Inbox, Hash, LogOut, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth";
 import { logoutViaRouteHandler } from "@/lib/api/auth";
 import { useProjects } from "@/hooks/useProjects";
 import { Button } from "@/components/ui/button";
+import { ProjectNavItem } from "@/components/layout/ProjectNavItem";
 
 function NavItem({
   href,
@@ -65,12 +66,7 @@ export function Sidebar() {
           </Link>
         </div>
         {projects?.map((p) => (
-          <NavItem
-            key={p.id}
-            href={`/projects/${p.id}`}
-            icon={FolderOpen}
-            label={p.name}
-          />
+          <ProjectNavItem key={p.id} project={p} />
         ))}
       </div>
 
